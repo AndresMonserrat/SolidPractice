@@ -1,6 +1,6 @@
 /* Operators */
 
-const obj = {
+export const obj = {
   name: "Andres",
   "last name": "Monserrat",
   age: 22,
