@@ -1,116 +1,155 @@
-const readline = require("readline");
+/*
+ * EJERCICIO:
+ * - Muestra ejemplos de creación de todas las estructuras soportadas por defecto
+ *   en tu lenguaje.
+ * - Utiliza operaciones de inserción, borrado, actualización y ordenación.
+ *
+ * DIFICULTAD EXTRA (opcional):
+ * Crea una agenda de contactos por terminal.
+ * - Debes implementar funcionalidades de búsqueda, inserción, actualización
+ *   y eliminación de contactos.
+ * - Cada contacto debe tener un nombre y un número de teléfono.
+ * - El programa solicita en primer lugar cuál es la operación que se quiere realizar,
+ *   y a continuación los datos necesarios para llevarla a cabo.
+ * - El programa no puede dejar introducir números de teléfono no numéricos y con más
+ *   de 11 dígitos (o el número de dígitos que quieras).
+ * - También se debe proponer una operación de finalización del programa.
+ */
 
-// Creamos la interfaz para leer la terminal
+let contacts = [];
+
+import readline from "readline";
+
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout,
 });
 
-const agenda = {};
+function showMenu() {
+  rl.question(
+    "\n\nSelecciona una opción:\n1. Añadir contacto\n2. Buscar contacto\n3. Actualizar contacto\n4. Eliminar contacto\n5. Mostrar contactos\n6. Salir\n",
+    (option) => {
+      switch (option) {
+        case "1":
+          addContact();
+          break;
+        case "2":
+          searchContact();
+          break;
+        case "3":
+          updateContact();
+          break;
+        case "4":
+          /* deleteContact(); */
+          break;
+        case "5":
+          showContacts();
+          break;
+        case "6":
+          rl.close();
+          break;
+        default:
+          console.log("Opción no válida");
+          showMenu();
+      }
+    },
+  );
+}
 
-function mostrarMenu() {
-  console.log("\n--- AGENDA DE CONTACTOS ---");
-  console.log("1. Buscar contacto");
-  console.log("2. Insertar contacto");
-  console.log("3. Actualizar contacto");
-  console.log("4. Eliminar contacto");
-  console.log("5. Mostrar todos los contactos");
-  console.log("6. Salir");
-
-  rl.question("\nSelecciona una opción (1-6): ", (opcion) => {
-    switch (opcion.trim()) {
-      case "1":
-        console.log(agenda);
-        Object.keys(agenda).length > 0
-          ? buscarContacto()
-          : console.log("La agenda está vacía. No hay contactos para buscar.");
-        break;
-      case "2":
-        insertarContacto();
-        break;
-      case "3":
-        actualizarContacto();
-        break;
-      case "4":
-        eliminarContacto();
-        break;
-      case "5":
-        mostrarTodos();
-        break;
-      case "6":
-        console.log("\n¡Gracias por usar la agenda! Saliendo...");
-        rl.close();
-        break;
-      default:
-        console.log("Opción no válida. Intenta de nuevo.");
-        mostrarMenu();
-    }
-  });
-
-  // 1. BUSCAR
-  function buscarContacto() {
-    console.log("\n--- BUSCAR CONTACTO ---");
-    rl.question("Introduce el nombre a buscar: ", (nombre) => {
-      const nombreClave = nombre.trim();
-      if (agenda[nombreClave]) {
-        console.log(
-          `🔍 Contacto encontrado: ${nombreClave} -> 📞 ${agenda[nombreClave]}`,
-        );
-        mostrarMenu();
+function addContact() {
+  try {
+    rl.question("Introduce el nombre del contacto: ", (name) => {
+      if (!name) {
+        console.log("El nombre no puede estar vacío.");
+        showMenu();
+        return;
+      } else if (contacts.some((contact) => contact.name === name)) {
+        console.log("Ya existe un contacto con ese nombre.");
+        showMenu();
+        return;
+      } else if (typeof name !== "string") {
+        console.log("El nombre debe ser una cadena de texto.");
+        showMenu();
+        return;
       } else {
-        console.log(`❌ El contacto '${nombreClave}' no existe.`);
-        mostrarMenu();
+        console.log("Tipo de dato", typeof name);
+        rl.question(
+          "Introduce el número de teléfono del contacto: ",
+          (phone) => {
+            if (!/^\d{1,11}$/.test(phone) || phone.length < 7) {
+              console.log(
+                "Número de teléfono no válido. Debe ser numérico y tener hasta 11 dígitos.",
+              );
+              showMenu();
+              return;
+            }
+
+            contacts.push({ name, phone });
+            console.log(`Contacto ${name} añadido correctamente.`);
+            showMenu();
+          },
+        );
       }
     });
+  } catch (error) {
+    console.error("Error al añadir contacto:", error);
+  } finally {
+    showMenu();
   }
+}
 
-  // 2. INSERTAR
-  function insertarContacto() {
-    rl.question("Introduce el nombre del contacto: ", (nombre) => {
-      const nombreClave = nombre.trim();
+function searchContact() {
+  rl.question("Introduce el nombre del contacto a buscar: ", (name) => {
+    const contact = contacts.find((contact) => contact.name === name);
+    if (contact) {
+      console.log(`Contacto encontrado: ${contact.name} - ${contact.phone}`);
+    } else {
+      console.log("Contacto no encontrado.");
+    }
+    showMenu();
+  });
+}
 
-      rl.question("Introduce el número de teléfono: ", (telefono) => {
-        const numeroClave = telefono.trim();
-
-        if (isValidNameNumber(nombreClave, numeroClave)) {
-          agenda[nombreClave] = numeroClave;
-          console.log(
-            `✅ Contacto agregado: ${nombreClave} -> 📞 ${numeroClave}`,
-          );
-          mostrarMenu();
+function updateContact() {
+  if (contacts.length === 0) {
+    console.log("No hay contactos en la agenda.");
+    showMenu();
+    return;
+  } else {
+    rl.question("Introduce el nombre del contacto a actualizar: ", (name) => {
+      contacts.forEach((contact) => {
+        if (contact.name === name) {
+          rl.question("Introduce el nuevo nombre del contacto: ", (newName) => {
+            rl.question(
+              "Introduce el nuevo número de teléfono del contacto: ",
+              (newPhone) => {
+                contact.name = newName;
+                contact.phone = newPhone;
+                console.log(`Contacto ${name} actualizado correctamente.`);
+                showMenu();
+              },
+            );
+          });
         } else {
-          console.log(`❌ Ya existe un contacto con ese nombre o número.`);
-          mostrarMenu();
-        }
-      });
-    });
-  }
-
-  function isValidNameNumber(name, PhoneNumber) {
-    const nombreRepetido = Object.keys(agenda).includes(name);
-    const numeroRepetido = Object.values(agenda).includes(PhoneNumber);
-    return !nombreRepetido && !numeroRepetido;
-  }
-
-  // 3. ACTUALIZAR
-
-  function actualizarContacto() {
-    rl.question("Introduce el nombre del contacto a actualizar: ", (nombre) => {
-      const nombreClave = nombre.trim();
-      rl.question("Introduce el nuevo número de teléfono: ", (telefono) => {
-        const numeroClave = telefono.trim();
-        if (agenda[nombreClave]) {
-          agenda[nombreClave] = numeroClave;
-          console.log(
-            `✅ Contacto actualizado: ${nombreClave} -> 📞 ${numeroClave}`,
-          );
-          mostrarMenu();
-        } else {
-          console.log(`❌ El contacto '${nombreClave}' no existe.`);
-          mostrarMenu();
+          console.log("Contacto no encontrado.");
+          showMenu();
         }
       });
     });
   }
 }
-mostrarMenu();
+
+function showContacts() {
+  if (contacts.length === 0) {
+    console.log("No hay contactos en la agenda.");
+  } else {
+    console.log("Contactos en la agenda:");
+    console.log(contacts);
+    contacts.forEach((contact, index) => {
+      console.log(`${index + 1}. ${contact.name} - ${contact.phone}`);
+    });
+  }
+  showMenu();
+}
+console.log(contacts);
+showMenu();
