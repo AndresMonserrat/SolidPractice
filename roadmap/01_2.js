@@ -40,7 +40,7 @@ function showMenu() {
           updateContact();
           break;
         case "4":
-          /* deleteContact(); */
+          deleteContact();
           break;
         case "5":
           showContacts();
@@ -110,12 +110,54 @@ function searchContact() {
   });
 }
 
+const valditateOfQueue = () => {
+  if (contacts.length === 0) {
+    console.log("No hay contactos en la agenda.");
+    showMenu();
+    return;
+  }
+}
+
+function searchContact2 () {
+  valditateOfQueue();
+  rl.question("Introduce el nombre del contacto a buscar: ", (name) => {
+    const contact = contacts.find((contact) => contact.name === name);
+    if (contact) {
+      console.log(`Contacto encontrado: ${contact.name} - ${contact.phone}`);
+    } else {
+      console.log("Contacto no encontrado.");
+    }
+    showMenu();
+  });
+}
+
+function deleteContact2() {
+  valditateOfQueue();
+  rl.question("Introduce el nombre del contacto a eliminar: ", (name) => {
+    contacts = contacts.filter((contact) => contact.name !== name);
+    console.log(`contacts`, contacts);
+    console.log(`Contacto ${name} eliminado correctamente.`);
+    showMenu();
+  });
+}
+
+
+function deleteContact() {
+  rl.question("Introduce el nombre del contacto a eliminar: ", (name) => {
+    contacts = contacts.filter((contact) => contact.name !== name);
+    console.log(`contacts`, contacts);
+    console.log(`Contacto ${name} eliminado correctamente.`);
+    showMenu();
+  });
+}
+
 function updateContact() {
   if (contacts.length === 0) {
     console.log("No hay contactos en la agenda.");
     showMenu();
     return;
   } else {
+    
     rl.question("Introduce el nombre del contacto a actualizar: ", (name) => {
       contacts.forEach((contact) => {
         if (contact.name === name) {
